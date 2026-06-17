@@ -1,0 +1,5 @@
+<resources>
+    <!-- Base theme. The actual colors come from Compose (Theme.kt); this is just
+         what the system uses before Compose draws (e.g. the splash background). -->
+    <style name="Theme.ProxDeals" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
