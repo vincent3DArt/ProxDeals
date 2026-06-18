@@ -102,7 +102,7 @@ fun DealsScreen(
 
                 Spacer(Modifier.padding(top = 4.dp))
 
-                // Price sort chips + clear filters, also wrapping with the width.
+                // Price sort chips + Free Deals filter + clear, wrapping with width.
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -117,6 +117,12 @@ fun DealsScreen(
                         selected = vm.priceSort == PriceSort.HighToLow,
                         onClick = { vm.onPriceSortChange(PriceSort.HighToLow) },
                         label = { Text("Price ↓") }
+                    )
+                    // Free Deals filter — shows only free-bundle items when on.
+                    FilterChip(
+                        selected = vm.showFreeDealsOnly,
+                        onClick = { vm.toggleFreeDealsOnly() },
+                        label = { Text("Free Deals") }
                     )
                     AssistChip(
                         onClick = { vm.clearFilters() },

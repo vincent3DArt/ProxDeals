@@ -46,6 +46,10 @@ class DealsViewModel : ViewModel() {
     var priceSort by mutableStateOf(PriceSort.None)
         private set
 
+    /** When true, the list shows only free-bundle deals. */
+    var showFreeDealsOnly by mutableStateOf(false)
+        private set
+
     /** IDs of deals the user has saved. A Set gives fast "is this saved?" checks. */
     var savedIds by mutableStateOf<Set<Int>>(emptySet())
         private set
@@ -54,7 +58,7 @@ class DealsViewModel : ViewModel() {
 
     // --- Derived (computed) lists -------------------------------------------
 
-    /** The deals to show after search + retailer filter + price sort. */
+    /** The deals to show after search + retailer + free-deals filter + sort. */
     val visibleDeals: List<Product>
         get() {
             var list = allDeals
@@ -62,12 +66,18 @@ class DealsViewModel : ViewModel() {
             if (searchQuery.isNotBlank()) {
                 list = list.filter {
                     it.name.contains(searchQuery, ignoreCase = true) ||
-                        it.retailer.contains(searchQuery, ignoreCase = true)
+                            it.retailer.contains(searchQuery, ignoreCase = true)
                 }
             }
             if (selectedRetailer != null) {
                 list = list.filter { it.retailer == selectedRetailer }
             }
+            // Free Deals filter: when on, keep only free-bundle items.
+            if (showFreeDealsOnly) {
+                list = list.filter { it.isFreeDeal }
+            }
+            // Sort by the displayed price (free items show at their original
+            // price, so they sort naturally alongside everything else).
             list = when (priceSort) {
                 PriceSort.LowToHigh -> list.sortedBy { it.price }
                 PriceSort.HighToLow -> list.sortedByDescending { it.price }
@@ -79,6 +89,24 @@ class DealsViewModel : ViewModel() {
     /** The full Product objects the user has saved. */
     val savedDeals: List<Product>
         get() = allDeals.filter { savedIds.contains(it.id) }
+
+    /**
+     * True when a free-bundle deal's required partner item is ALSO saved.
+     * e.g. Bananas (free with Greek Yogurt) → true once Greek Yogurt is saved.
+     */
+    fun isFreeDealUnlocked(product: Product): Boolean {
+        if (!product.isFreeDeal) return false
+        return savedDeals.any { it.name.equals(product.requiredPurchase, ignoreCase = true) }
+    }
+
+    /**
+     * The price to show in the SAVED screen. A free-bundle item drops to $0.00
+     * once its required partner is also saved; otherwise it shows its normal
+     * price. Regular products always show their normal price.
+     */
+    fun savedDisplayPrice(product: Product): Double {
+        return if (isFreeDealUnlocked(product)) 0.0 else product.price
+    }
 
     // --- Actions the UI can call --------------------------------------------
 
@@ -105,10 +133,14 @@ class DealsViewModel : ViewModel() {
 
     fun onPriceSortChange(sort: PriceSort) { priceSort = sort }
 
+    /** Toggle the "Free Deals only" filter on/off. */
+    fun toggleFreeDealsOnly() { showFreeDealsOnly = !showFreeDealsOnly }
+
     fun clearFilters() {
         selectedRetailer = null
         priceSort = PriceSort.None
         searchQuery = ""
+        showFreeDealsOnly = false  // turn the Free Deals filter back off
     }
 
     /** Add or remove a deal from saved. Returns nothing — state updates the UI. */

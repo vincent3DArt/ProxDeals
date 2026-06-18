@@ -66,7 +66,11 @@ fun SavedScreen(
                         product = product,
                         isSaved = true,
                         onClick = { onDealClick(product.id) },
-                        onToggleSave = { vm.toggleSaved(product.id) }
+                        onToggleSave = { vm.toggleSaved(product.id) },
+                        // Free items drop to $0.00 once their required partner
+                        // is also saved (e.g. Bananas free when Greek Yogurt
+                        // is saved). Otherwise they show their normal price.
+                        priceOverride = vm.savedDisplayPrice(product)
                     )
                 }
             }

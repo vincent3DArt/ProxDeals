@@ -17,7 +17,15 @@ data class Product(
     val size: String,         // e.g. "500g", "1L", "12 pack"
     val emoji: String,        // simple stand-in for a product image
     val isBestDeal: Boolean,  // shows the "Best Deal" badge
-    val reason: String        // short text explaining WHY the deal is good
+    val reason: String,       // short text explaining WHY the deal is good
+
+    // --- Free-bundle deal fields ---------------------------------------------
+    // These have default values, so existing products that don't pass them in
+    // still work. In Kotlin a parameter with `= ...` is optional, like an
+    // overloaded constructor in Java but without writing extra constructors.
+    val isFreeDeal: Boolean = false,        // true when the item is free with a bundle
+    val requiredPurchase: String = "",      // the item you must buy, e.g. "Greek Yogurt"
+    val promotionDescription: String = ""   // full promo text, e.g. "Free when purchased with Greek Yogurt"
 ) {
     /** How many dollars you save vs. the original price. */
     val savings: Double

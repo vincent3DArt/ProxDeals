@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prox.deals.DealsViewModel
 import com.prox.deals.ui.components.BestDealBadge
+import com.prox.deals.ui.components.FreeBadge
 import com.prox.deals.ui.components.SavingsLabel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,8 +98,12 @@ fun DetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            if (product.isBestDeal) {
-                BestDealBadge()
+            // A deal can carry the Best Deal badge, the FREE badge, or both.
+            if (product.isBestDeal || product.isFreeDeal) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (product.isBestDeal) BestDealBadge()
+                    if (product.isFreeDeal) FreeBadge()
+                }
                 Spacer(Modifier.height(8.dp))
             }
 
@@ -117,17 +122,22 @@ fun DetailScreen(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    "$%.2f".format(product.originalPrice),
-                    textDecoration = TextDecoration.LineThrough,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
+                // Struck-through original only when there's a real discount.
+                if (product.price < product.originalPrice) {
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        "$%.2f".format(product.originalPrice),
+                        textDecoration = TextDecoration.LineThrough,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
             }
 
-            Spacer(Modifier.height(8.dp))
-            SavingsLabel(product.savings, product.savingsPercent)
+            if (product.savings > 0) {
+                Spacer(Modifier.height(8.dp))
+                SavingsLabel(product.savings, product.savingsPercent)
+            }
 
             Spacer(Modifier.height(20.dp))
 
@@ -144,6 +154,35 @@ fun DetailScreen(
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(product.reason, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+
+            // Extra card shown ONLY for free-bundle deals, explaining the promo
+            // and which item you need to buy to get this one free.
+            if (product.isFreeDeal) {
+                Spacer(Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            "Free bundle deal",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            product.promotionDescription,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            "Required purchase: ${product.requiredPurchase}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
 

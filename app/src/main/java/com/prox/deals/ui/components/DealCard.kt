@@ -45,8 +45,14 @@ fun DealCard(
     isSaved: Boolean,
     onClick: () -> Unit,
     onToggleSave: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // Optional price to show instead of product.price. The Saved screen passes
+    // $0.00 for a free item once its partner is saved. Defaults to the normal
+    // price so every other caller behaves exactly as before.
+    priceOverride: Double? = null
 ) {
+    // The price this card actually displays.
+    val shownPrice = priceOverride ?: product.price
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -72,8 +78,13 @@ fun DealCard(
             Spacer(Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                if (product.isBestDeal) {
-                    BestDealBadge()
+                // Badges row: a deal can carry the Best Deal badge, the FREE
+                // badge (any free-bundle item), or both.
+                if (product.isBestDeal || product.isFreeDeal) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (product.isBestDeal) BestDealBadge()
+                        if (product.isFreeDeal) FreeBadge()
+                    }
                     Spacer(Modifier.padding(top = 4.dp))
                 }
                 Text(
@@ -89,21 +100,39 @@ fun DealCard(
                 Spacer(Modifier.padding(top = 4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "$%.2f".format(product.price),
+                        "$%.2f".format(shownPrice),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(Modifier.width(8.dp))
+                    // Struck-through original only when the shown price is lower.
+                    if (shownPrice < product.originalPrice) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "$%.2f".format(product.originalPrice),
+                            textDecoration = TextDecoration.LineThrough,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+                // "You save $X" label, based on the shown price.
+                val shownSavings = product.originalPrice - shownPrice
+                if (shownSavings > 0) {
+                    Spacer(Modifier.padding(top = 4.dp))
+                    val percent = ((shownSavings / product.originalPrice) * 100).toInt()
+                    SavingsLabel(shownSavings, percent)
+                }
+                // Promotion explanation, shown on free-bundle cards so the user
+                // sees the offer ("Free when purchased with …") right in the list.
+                if (product.isFreeDeal && product.promotionDescription.isNotBlank()) {
+                    Spacer(Modifier.padding(top = 4.dp))
                     Text(
-                        "$%.2f".format(product.originalPrice),
-                        textDecoration = TextDecoration.LineThrough,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        fontSize = 13.sp
+                        product.promotionDescription,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
-                Spacer(Modifier.padding(top = 4.dp))
-                SavingsLabel(product.savings, product.savingsPercent)
             }
 
             // Save / unsave heart button.

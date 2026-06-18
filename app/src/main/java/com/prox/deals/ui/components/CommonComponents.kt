@@ -104,6 +104,24 @@ fun BestDealBadge(modifier: Modifier = Modifier) {
     }
 }
 
+/** Green "FREE" pill badge for free-bundle deals. */
+@Composable
+fun FreeBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            "FREE",
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
 /** Green "You save $X" label shown under the price. */
 @Composable
 fun SavingsLabel(savings: Double, percent: Int, modifier: Modifier = Modifier) {
