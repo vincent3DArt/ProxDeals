@@ -1,19 +1,17 @@
 package com.prox.deals.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AssistChip
@@ -39,7 +37,7 @@ import com.prox.deals.ui.components.ErrorState
 import com.prox.deals.ui.components.LoadingState
 import com.prox.deals.ui.components.SearchBar
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DealsScreen(
     vm: DealsViewModel,
@@ -78,12 +76,15 @@ fun DealsScreen(
                 SearchBar(query = vm.searchQuery, onQueryChange = vm::onSearchChange)
                 Spacer(Modifier.padding(top = 8.dp))
 
-                // Retailer filter chips, horizontally scrollable on small screens.
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // Retailer filter chips. FlowRow lays them out left-to-right and
+                // automatically wraps to a new line when they run out of width —
+                // so on a narrow phone they stack onto more rows, and on a wide
+                // tablet they spread across fewer rows. This is the responsive
+                // part: the layout reshapes itself to the available screen size.
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     FilterChip(
                         selected = vm.selectedRetailer == null,
@@ -101,12 +102,11 @@ fun DealsScreen(
 
                 Spacer(Modifier.padding(top = 4.dp))
 
-                // Price sort chips + clear filters.
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // Price sort chips + clear filters, also wrapping with the width.
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     FilterChip(
                         selected = vm.priceSort == PriceSort.LowToHigh,
